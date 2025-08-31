@@ -30,6 +30,36 @@ create-topic:
 		--replication-factor 1 \
 		--bootstrap-server kafka:9092
 
+
+# Test cache performance
+test-cache:
+	@echo "Testing cache performance..."
+	@echo "Sending test data..."
+	@docker-compose run --rm kafka-producer > /dev/null 2>&1
+	@sleep 5
+	@ORDER_UID=$$(docker-compose exec postgres psql -U postgres -d order_service -t -c "SELECT order_uid FROM orders ORDER BY date_created DESC LIMIT 1;" 2>/dev/null | tr -d '[:space:]') && \
+	if [ -z "$$ORDER_UID" ]; then \
+		echo "Ошибка: не удалось получить order_uid из базы данных"; \
+		exit 1; \
+	fi && \
+	echo "Тестируем заказ: $$ORDER_UID" && \
+	echo "" && \
+	echo "=== ПЕРВЫЙ ЗАПРОС (БД) ===" && \
+	curl -s -w "Время: %{time_total} сек\nHTTP код: %{http_code}\n" -o /dev/null "http://localhost:8080/api/order/$$ORDER_UID" || true && \
+	echo "" && \
+	echo "=== ВТОРОЙ ЗАПРОС (КЭШ) ===" && \
+	curl -s -w "Время: %{time_total} сек\nHTTP код: %{http_code}\n" -o /dev/null "http://localhost:8080/api/order/$$ORDER_UID" || true && \
+	echo "" && \
+	echo "=== ТРЕТИЙ ЗАПРОС (КЭШ) ===" && \
+	curl -s -w "Время: %{time_total} сек\nHTTP код: %{http_code}\n" -o /dev/null "http://localhost:8080/api/order/$$ORDER_UID" || true
+
+# Clean database (remove all data)
+clean-db:
+	@echo "Cleaning database..."
+	docker-compose exec postgres psql -U postgres -d order_service -c "\
+	TRUNCATE TABLE items, payments, deliveries, orders RESTART IDENTITY CASCADE;"
+	@echo "Database cleaned successfully!"
+
 # Show help
 help:
 	@echo "Available commands:"
