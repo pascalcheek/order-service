@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Service - Track Your Orders</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>Order Tracking Service</h1>
+    <p>Enter your Order ID to view order details</p>
+  </header>
+
+  <section class="search-section">
+    <form id="search-form" class="search-form">
+      <input
+              type="text"
+              id="order-id"
+              class="search-input"
+              placeholder="Enter Order ID (e.g., test_order_123456789_0)"
+              required
+      >
+      <button type="submit" class="search-button">Search Order</button>
+    </form>
+  </section>
+
+  <section class="results-section">
+    <div id="loading" class="loading" style="display: none;">
+      <p>Loading order details...</p>
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+      <p id="error-message"></p>
+    </div>
+
+    <div id="order-details" class="order-details" style="display: none;">
+      <!-- Order details will be inserted here -->
+    </div>
+  </section>
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>
